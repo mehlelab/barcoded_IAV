@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+
+
+# import modules
+
+import pandas as pd
+import sys
+import csv
+
+csv.field_size_limit(sys.maxsize)
+
+
+
+# NHE
+
+nhe = pd.read_csv('Nhe_downsampled.tsv', sep='\t', engine='python', error_bad_lines=False, usecols=['#Read-Name', 'READ-BASE', 'REF-POS1'])
+nhe = nhe[nhe['REF-POS1'].str.contains("\.")==False]
+nhe['REF-POS1'] = nhe['REF-POS1'].astype(int)
+keep_list = [508,1708,1709,1710,1711,1712,1713,1714,1715,1716,1717]
+nhe = nhe[nhe['REF-POS1'].isin(keep_list)]
+
+nhe_grouped = nhe.groupby('#Read-Name')
+grouped_lists = nhe_grouped["READ-BASE"].agg(lambda column: "".join(column))
+grouped_lists = grouped_lists.reset_index(name="READ-BASE")
+
+grouped_lists = grouped_lists[grouped_lists['READ-BASE'].str.contains("\.")==False]
+grouped_lists['READ-BASE'] = grouped_lists['READ-BASE'].astype(str)
+grouped_lists = grouped_lists.dropna(subset=['READ-BASE'])
+grouped_lists = grouped_lists[grouped_lists['READ-BASE'].str.len() == 11]
+
+total_reads = len(grouped_lists.index)
+print("total reads = ", total_reads)
+
+mut_dominant = grouped_lists['READ-BASE'].str.count("GCGTAAGCTGC").sum()
+percent_mut_dominat = mut_dominant / total_reads * 100
+print("mut + dominant barcode = ", mut_dominant)
+print("mut + dominant barcode % = ", percent_mut_dominat)
+
+WT_dominant = grouped_lists['READ-BASE'].str.count("ACGTAAGCTGC").sum()
+percent_WT_dominat = WT_dominant / total_reads * 100
+print("WT + dominant barcode = ", WT_dominant)
+print("WT + dominant barcode % = ", percent_WT_dominat)
+
+mut_NOTdominant_G = grouped_lists['READ-BASE'].str.contains('^G.*').sum()
+mut_NOTdominant = mut_NOTdominant_G - mut_dominant
+percent_mut_NOTdominant = mut_NOTdominant / total_reads * 100
+print("mut + NOT dominant barcode = ", mut_NOTdominant)
+print("mut + NOT dominant barcode % = ", percent_mut_NOTdominant)
+
+WT_NOTdominant_A = grouped_lists['READ-BASE'].str.contains('^A.*').sum()
+WT_NOTdominant = WT_NOTdominant_A - WT_dominant
+percent_WT_NOTdominant = WT_NOTdominant / total_reads * 100
+print("WT + NOT dominant barcode = ", WT_NOTdominant)
+print("WT + NOT dominant barcode % = ", percent_WT_NOTdominant)
+
+grouped_lists.to_csv('/Volumes/KMB_hard_drive_2/ONT_data/TO_SEND/NHE_longread_haplotypes.csv', sep='\t')
+
+###
+
+
+# pst (line 1 - 17 million)
+
+pst = pd.read_csv('Pst_downsampled.tsv', sep='\t', engine='python', error_bad_lines=False, usecols=['#Read-Name', 'READ-BASE', 'REF-POS1'])
+pst = pst[pst['REF-POS1'].str.contains("\.")==False]
+pst['REF-POS1'] = pst['REF-POS1'].astype(int)
+keep_list = [511,1708,1709,1710,1711,1712,1713,1714,1715,1716,1717]
+pst = pst[pst['REF-POS1'].isin(keep_list)]
+
+pst_grouped = pst.groupby('#Read-Name')
+grouped_lists = pst_grouped["READ-BASE"].agg(lambda column: "".join(column))
+grouped_lists = grouped_lists.reset_index(name="READ-BASE")
+
+grouped_lists = grouped_lists[grouped_lists['READ-BASE'].str.contains("\.")==False]
+grouped_lists['READ-BASE'] = grouped_lists['READ-BASE'].astype(str)
+grouped_lists = grouped_lists.dropna(subset=['READ-BASE'])
+grouped_lists = grouped_lists[grouped_lists['READ-BASE'].str.len() == 11]
+
+total_reads = len(grouped_lists.index)
+print("total reads = ", total_reads)
+
+mut_dominant = grouped_lists['READ-BASE'].str.count("GGTATTTGTTT").sum()
+percent_mut_dominat = mut_dominant / total_reads * 100
+print("mut + dominant barcode = ", mut_dominant)
+print("mut + dominant barcode % = ", percent_mut_dominat)
+
+WT_dominant = grouped_lists['READ-BASE'].str.count("AGTATTTGTTT").sum()
+percent_WT_dominat = WT_dominant / total_reads * 100
+print("WT + dominant barcode = ", WT_dominant)
+print("WT + dominant barcode % = ", percent_WT_dominat)
+
+mut_NOTdominant_G = grouped_lists['READ-BASE'].str.contains('^G.*').sum()
+mut_NOTdominant = mut_NOTdominant_G - mut_dominant
+percent_mut_NOTdominant = mut_NOTdominant / total_reads * 100
+print("mut + NOT dominant barcode = ", mut_NOTdominant)
+print("mut + NOT dominant barcode % = ", percent_mut_NOTdominant)
+
+WT_NOTdominant_A = grouped_lists['READ-BASE'].str.contains('^A.*').sum()
+WT_NOTdominant = WT_NOTdominant_A - WT_dominant
+percent_WT_NOTdominant = WT_NOTdominant / total_reads * 100
+print("WT + NOT dominant barcode = ", WT_NOTdominant)
+print("WT + NOT dominant barcode % = ", percent_WT_NOTdominant)
+
+grouped_lists.to_csv('/Volumes/KMB_hard_drive_2/ONT_data/TO_SEND/pst_longread_haplotypes.csv', sep='\t')
+
+###
+
+#end
